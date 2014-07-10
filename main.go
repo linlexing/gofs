@@ -68,7 +68,7 @@ func main() {
 				return
 
 			}
-			w.Write([]byte(fmt.Sprintf("<html><body style='font-size:12px;'>Success upload the file:<a href='%s' target='_blank' >Picture</a>&nbsp;&nbsp;and auto build the <a href='%s' target='_blank'>Small Picture</a>",
+			w.Write([]byte(fmt.Sprintf("<html><body style='font-size:12px;'>成功上传了:<a href='%s' target='_blank' >图片</a>&nbsp;&nbsp;并且系统自动生成了 <a href='%s' target='_blank'>缩略图</a>",
 				"/get/"+r.URL.Path,
 				"/get/"+r.URL.Path[:len(r.URL.Path)-4]+"_small.jpg")))
 		}

@@ -2,7 +2,7 @@
 *.o
 *.a
 *.so
-
+*.rar
 # Folders
 _obj
 _test
@@ -34,7 +34,8 @@ _testmain.go
 .LSOverride
 
 # Icon must ends with two \r.
-Icon
+Icon
+
 
 # Thumbnails
 ._*
