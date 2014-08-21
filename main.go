@@ -17,7 +17,8 @@ var AppPath string
 
 func main() {
 	var err error
-	var port = flag.Int("port", 80, "http listen and serve the port,default=80")
+	port := flag.Int("port", 80, "http listen and serve the port,default=80")
+	maxsize := flag.Int("maxsize", 1024, "max size of the allow upload file(kb)")
 	flag.Parse()
 	if AppPath, err = filepath.Abs("."); err != nil {
 		panic(err)
@@ -52,14 +53,25 @@ func main() {
 			return
 		}
 		defer diskFile.Close()
-		_, err = io.Copy(diskFile, file)
+		filesize, err := io.Copy(diskFile, file)
 		diskFile.Close()
 		if err != nil {
 			log.Printf("error at upload copy:%s", err)
 			w.Write([]byte("copy has a error :" + err.Error()))
 			return
 		}
-		log.Printf("upload %s", fileName)
+		if filesize > int64(*maxsize)*1024 {
+			err = os.Remove(fileName)
+			if err != nil {
+				log.Printf("error at remove file:%s", err)
+				w.Write([]byte("error at remove file:" + err.Error()))
+				return
+			}
+			log.Printf("upload file size %d ,too big", filesize)
+			w.Write([]byte(fmt.Sprintf("错误:文件大小%.2fK太大,不能超出%dK!", float64(filesize)/1024, *maxsize)))
+			return
+		}
+		log.Printf("upload %s,size %.2fk", r.URL, float64(filesize)/1024)
 		if strings.ToLower(filepath.Ext(fileName)) == ".jpg" {
 			//build small picture
 			if err := buildSmallJpeg(fileName[:len(fileName)-4]+"_small.jpg", fileName); err != nil {
@@ -68,7 +80,8 @@ func main() {
 				return
 
 			}
-			w.Write([]byte(fmt.Sprintf("<html><body style='font-size:12px;'>成功上传了:<a href='%s' target='_blank' >图片</a>&nbsp;&nbsp;并且系统自动生成了 <a href='%s' target='_blank'>缩略图</a>",
+			w.Write([]byte(fmt.Sprintf("<html><head><base href='%s' /></head><body style='font-size:12px;'>成功上传了:<a href='%s' target='_blank' >图片</a>&nbsp;&nbsp;并且系统自动生成了 <a href='%s' target='_blank'>缩略图</a>",
+				"http://"+r.Host,
 				"/get/"+r.URL.Path,
 				"/get/"+r.URL.Path[:len(r.URL.Path)-4]+"_small.jpg")))
 		}
